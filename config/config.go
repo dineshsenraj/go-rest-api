@@ -1,16 +1,23 @@
 package config
 
 import (
-	app "RESTApi/app"
+	app "RESTApi/go-rest-api/app"
 	"log"
 	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 //HandleRequests used in main.go
 func HandleRequests() {
-	//myRouter := mux.NewRouter().StrictSlash(true)
-	http.HandleFunc("/", app.Homepage)
-	http.HandleFunc("/cars", app.ReturnAllArticles)
-	http.HandleFunc("/cars/*/return", app.ReturnSingleArticle)
-	log.Fatal(http.ListenAndServe(":9090", nil))
+	myRouter := httprouter.New()
+	myRouter.GET("/", app.Homepage)
+	myRouter.GET("/cars", app.ReturnAllArticles)
+	myRouter.GET("/cars/", app.ReturnAllArticles)
+	myRouter.GET("/cars/:id/", app.ReturnSingleArticle)
+	myRouter.POST("/cars", app.CreateArticle)
+	myRouter.POST("/cars/", app.CreateArticle)
+	myRouter.DELETE("/cars/:id/", app.DeleteArticle)
+	myRouter.PUT("/cars/:id/", app.UpdateArticle)
+	log.Fatal(http.ListenAndServe(":9090", myRouter))
 }

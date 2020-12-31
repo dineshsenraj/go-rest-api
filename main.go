@@ -1,8 +1,8 @@
 package main
 
 import (
-	"RESTApi/config"
-	m "RESTApi/model"
+	"RESTApi/go-rest-api/config"
+	m "RESTApi/go-rest-api/model"
 )
 
 func main() {
