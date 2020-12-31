@@ -19,6 +19,8 @@ func Homepage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 //ReturnAllArticles used in config.go
 func ReturnAllArticles(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Println("Endpoint Hit: returnAllArticles")
+	header := w.Header()
+	header.Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m.Articles)
 }
 
@@ -30,8 +32,12 @@ func ReturnSingleArticle(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	//fmt.Fprintf(w, "Key: "+key)
 	for _, article := range m.Articles {
 		if article.ID == key {
+			header := w.Header()
+			header.Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(article)
+			break
 		}
+
 	}
 }
 
@@ -41,6 +47,9 @@ func CreateArticle(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	var car m.Article
 	json.Unmarshal(reqBody, &car)
 	m.Articles = append(m.Articles, car)
+	header := w.Header()
+	header.Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(car)
 }
 
@@ -50,6 +59,8 @@ func DeleteArticle(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 	for index, article := range m.Articles {
 		if article.ID == key {
 			m.Articles = append(m.Articles[:index], m.Articles[index+1:]...)
+			w.WriteHeader(http.StatusNoContent)
+			break
 		}
 	}
 }
@@ -64,6 +75,8 @@ func UpdateArticle(w http.ResponseWriter, r *http.Request, ps httprouter.Params)
 			json.Unmarshal(reqBody, &car)
 			m.Articles = append(m.Articles[:index], m.Articles[index+1:]...)
 			m.Articles = append(m.Articles, car)
+			header := w.Header()
+			header.Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(car)
 			break
 		}
