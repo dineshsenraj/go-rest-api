@@ -12,13 +12,13 @@ import (
 
 // Homepage refered in config.go
 func Homepage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	header := w.Header()
+	header.Set("Content-Type", "text/html")
 	fmt.Fprintf(w, "Welcome to the HomePage!!")
-	fmt.Println("Endpoint Hit : HomePage")
 }
 
 //ReturnAllArticles used in config.go
 func ReturnAllArticles(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Println("Endpoint Hit: returnAllArticles")
 	header := w.Header()
 	header.Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(m.Articles)
