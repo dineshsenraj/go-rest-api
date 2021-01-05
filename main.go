@@ -12,5 +12,6 @@ func main() {
 		m.Article{Title: "Car", Description: "Green Hatch Back", Name: "Chevrolet Beat", ID: "3"},
 		m.Article{Title: "Car", Description: "White SUV", Name: "Kia Seltos", ID: "4"},
 	}
+	config.Init()
 	config.HandleRequests()
 }
