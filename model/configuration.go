@@ -8,7 +8,7 @@ type Configuration struct {
 
 //ServerConfig properties
 type ServerConfig struct {
-	Port int
+	Port string
 }
 
 //DBConfig properties

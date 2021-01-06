@@ -1,10 +1,12 @@
 package app
 
 import (
+	"RESTApi/go-rest-api/config"
 	m "RESTApi/go-rest-api/model"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,14 +20,45 @@ func Homepage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 //ReturnAllCars used in config.go
-func ReturnAllCars(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func ReturnAllCars(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var carsList []m.Car
+	rows, err := config.DB.Query(`select id as ID, name as Name, description as Description, title as Title from cars c`)
+	if err != nil {
+		log.Println("Database Error")
+		log.Println(err.Error())
+		InternalServerError(&w, "Database Error")
+	}
+	defer rows.Close()
+	err = rows.Err()
+	if err != nil {
+		log.Println("Query Error")
+		log.Println(err.Error())
+		InternalServerError(&w, "Query Error")
+	}
+
+	for rows.Next() {
+		car := m.Car{}
+		err = rows.Scan(
+			&car.ID,
+			&car.Name,
+			&car.Description,
+			&car.Title,
+		)
+		if err != nil {
+			log.Println("Row Scan Error")
+			log.Println(err.Error())
+			InternalServerError(&w, "Row Scan Error")
+		}
+		carsList = append(carsList, car)
+	}
+
+	if len(carsList) == 0 {
+		NotFound(&w, "Car is not found")
+	}
+
 	header := w.Header()
 	header.Set("Content-Type", "application/json")
-	if len(m.Cars) == 0 {
-		NotFound(&w, "No Cars Found")
-	} else {
-		json.NewEncoder(w).Encode(m.Cars)
-	}
+	json.NewEncoder(w).Encode(carsList)
 }
 
 //ReturnSingleCar returns single car

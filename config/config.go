@@ -1,16 +1,13 @@
 package config
 
 import (
-	app "RESTApi/go-rest-api/app"
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
 	m "RESTApi/go-rest-api/model"
 
-	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq" //postgresql
 	"github.com/spf13/viper"
 )
@@ -56,6 +53,7 @@ func Init() {
 	os.Setenv("MSG_BAD_REQUEST", viper.GetString("MSG_BAD_REQUEST"))
 	os.Setenv("MSG_NOT_FOUND", viper.GetString("MSG_NOT_FOUND"))
 	os.Setenv("MSG_INTERNAL_SERVER", viper.GetString("MSG_INTERNAL_SERVER"))
+	os.Setenv("GO_SERVER_PORT", Configurations.Server.Port)
 }
 
 //InitDB connect to database
@@ -78,23 +76,4 @@ func InitDB() {
 		log.Fatalln(err.Error())
 	}
 	log.Println("Database connection established.")
-}
-
-//HandleRequests used in main.go
-func HandleRequests() {
-	myRouter := httprouter.New()
-	//myRouter.HandleMethodNotAllowed = true
-	myRouter.GET("/", app.Homepage)
-	myRouter.GET("/cars", app.ReturnAllCars)
-	myRouter.GET("/cars/", app.ReturnAllCars)
-	myRouter.GET("/cars/:id/", app.ReturnSingleCar)
-	myRouter.GET("/cars/:id", app.ReturnSingleCar)
-	myRouter.POST("/cars", app.CreateCar)
-	myRouter.POST("/cars/", app.CreateCar)
-	myRouter.DELETE("/cars/:id/", app.DeleteCar)
-	myRouter.DELETE("/cars/:id", app.DeleteCar)
-	myRouter.PUT("/cars/:id/", app.UpdateCar)
-	myRouter.PUT("/cars/:id", app.UpdateCar)
-	port := fmt.Sprint(":", Configurations.Server.Port)
-	log.Fatal(http.ListenAndServe(port, myRouter))
 }
