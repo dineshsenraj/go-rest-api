@@ -1,6 +1,13 @@
 server:
   port: 9090
 
+database:
+  dbName: postgres
+  dbUser: postgres
+  dbPassword: P@ssw0rd
+  dbServer: localhost
+  dbPort: 5432
+
 MSG_BAD_REQUEST: Bad Request
 MSG_NOT_FOUND: Not Found
 MSG_INTERNAL_SERVER: Internal Server Error
