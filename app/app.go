@@ -3,6 +3,7 @@ package app
 import (
 	"RESTApi/go-rest-api/config"
 	m "RESTApi/go-rest-api/model"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -22,7 +23,8 @@ func Homepage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 //ReturnAllCars used in config.go
 func ReturnAllCars(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var carsList []m.Car
-	rows, err := config.DB.Query(`select id as ID, name as Name, description as Description, title as Title from cars c`)
+	rows, err := config.DB.Query(`select id as ID, car_name as Name, description as Description, 
+	title as Title from cars c order by c.id asc`)
 	if err != nil {
 		log.Println("Database Error")
 		log.Println(err.Error())
@@ -53,7 +55,7 @@ func ReturnAllCars(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	}
 
 	if len(carsList) == 0 {
-		NotFound(&w, "Car is not found")
+		NotFound(&w, "No cars found")
 	}
 
 	header := w.Header()
@@ -66,19 +68,20 @@ func ReturnSingleCar(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	//vars := strings.Split(r.URL.Path, "/")
 	//key := vars[2]
 	key := ps.ByName("id")
-	carFound := false
-	//fmt.Fprintf(w, "Key: "+key)
-	for _, car := range m.Cars {
-		if car.ID == key {
-			carFound = true
-			header := w.Header()
-			header.Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(car)
-			break
-		}
-	}
-	if !carFound {
-		NotFound(&w, "Car is not found")
+	row := config.DB.QueryRow(`select id as ID, car_name as Name, description as Description, 
+	title as Title from cars c where id=$1`, key)
+	car := m.Car{}
+	switch err := row.Scan(&car.ID, &car.Name, &car.Description, &car.Title); err {
+	case sql.ErrNoRows:
+		NotFound(&w, "Car not found")
+	case nil:
+		header := w.Header()
+		header.Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(car)
+	default:
+		log.Println("Row Scan Error")
+		log.Println(err.Error())
+		InternalServerError(&w, "Row Scan Error")
 	}
 }
 
@@ -88,43 +91,72 @@ func CreateCar(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var car m.Car
 	err := json.Unmarshal(reqBody, &car)
 	if err != nil {
-		BadRequest(&w, "Send A Valid Request")
-		err = nil
-	} else {
-		m.Cars = append(m.Cars, car)
-		header := w.Header()
-		header.Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(car)
+		BadRequest(&w, "Invalid Request")
 	}
+	result, err := config.DB.Exec(`INSERT INTO public.cars
+	(id, car_name, description, title)
+	VALUES($1, $2, $3, $4)`, car.ID, car.Name, car.Description, car.Title)
+	if err != nil {
+		InternalServerError(&w, "Query Error")
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		InternalServerError(&w, "DB Error")
+	}
+	if rows != 1 {
+		InternalServerError(&w, fmt.Sprintf("Expected to insert 1 row, but inserted %d rows", rows))
+	}
+	header := w.Header()
+	header.Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(car)
 }
 
 //DeleteCar deletes a car
 func DeleteCar(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	key := ps.ByName("id")
-	for index, car := range m.Cars {
-		if car.ID == key {
-			m.Cars = append(m.Cars[:index], m.Cars[index+1:]...)
-			w.WriteHeader(http.StatusNoContent)
-			break
-		}
+	result, err := config.DB.Exec(`DELETE FROM public.cars
+	WHERE id=$1`, key)
+	if err != nil {
+		InternalServerError(&w, "Query Error")
 	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		InternalServerError(&w, "DB Error")
+	}
+	if rows > 1 {
+		InternalServerError(&w, fmt.Sprintf("Expected to delete 1 row, but deleted %d rows", rows))
+	}
+	if rows == 0 {
+		NotFound(&w, "No Records Found to Delete")
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 //UpdateCar updates a car
 func UpdateCar(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	key := ps.ByName("id")
-	for index, car := range m.Cars {
-		if car.ID == key {
-			reqBody, _ := ioutil.ReadAll(r.Body)
-			var car m.Car
-			json.Unmarshal(reqBody, &car)
-			m.Cars = append(m.Cars[:index], m.Cars[index+1:]...)
-			m.Cars = append(m.Cars, car)
-			header := w.Header()
-			header.Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(car)
-			break
-		}
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var car m.Car
+	json.Unmarshal(reqBody, &car)
+	result, err := config.DB.Exec(`UPDATE public.cars
+	SET id=$1, car_name=$2, description=$3, title=$4 
+	where id=$5`, car.ID, car.Name, car.Description, car.Title, key)
+	if err != nil {
+		InternalServerError(&w, "Query Error")
 	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		InternalServerError(&w, "DB Error")
+	}
+	if rows > 1 {
+		InternalServerError(&w, fmt.Sprintf("Expected to update 1 row, but updated %d rows", rows))
+	}
+	if rows == 0 {
+		NotFound(&w, "No Records Found to Update")
+	}
+	header := w.Header()
+	header.Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(car)
+
 }
