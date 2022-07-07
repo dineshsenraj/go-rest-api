@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	m "RESTApi/go-rest-api/model"
+	m "github.com/dineshsenraj/go-rest-api/model"
 
 	_ "github.com/lib/pq" //postgresql
 	"github.com/spf13/viper"

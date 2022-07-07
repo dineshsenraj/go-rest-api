@@ -4,7 +4,7 @@ server:
 database:
   dbName: postgres
   dbUser: postgres
-  dbPassword: P@ssw0rd
+  dbPassword: dinesh
   dbServer: localhost
   dbPort: 5432
 

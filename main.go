@@ -1,8 +1,8 @@
 package main
 
 import (
-	"RESTApi/go-rest-api/app"
-	"RESTApi/go-rest-api/config"
+	"github.com/dineshsenraj/go-rest-api/app"
+	"github.com/dineshsenraj/go-rest-api/config"
 	"fmt"
 	"log"
 	"net/http"

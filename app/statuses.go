@@ -1,7 +1,7 @@
 package app
 
 import (
-	m "RESTApi/go-rest-api/model"
+	m "github.com/dineshsenraj/go-rest-api/model"
 	"encoding/json"
 	"net/http"
 	"os"

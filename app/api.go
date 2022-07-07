@@ -1,8 +1,8 @@
 package app
 
 import (
-	"RESTApi/go-rest-api/config"
-	m "RESTApi/go-rest-api/model"
+	"github.com/dineshsenraj/go-rest-api/config"
+	m "github.com/dineshsenraj/go-rest-api/model"
 	"database/sql"
 	"encoding/json"
 	"fmt"
