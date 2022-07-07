@@ -1,9 +1,8 @@
-module go-rest-api
+module github.com/dineshsenraj/go-rest-api
 
 go 1.18
 
 require (
-	github.com/dineshsenraj/go-rest-api v0.0.0-20210107141949-3c3c1265d63f
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.6
 	github.com/spf13/viper v1.12.0
